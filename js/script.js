@@ -30,6 +30,7 @@
   };
 
   var TEXT = {
+    name: "Running of the humans",
     runnersBehind: "Runners behind",
     start: "Space/Click to start",
     score: "Runners Caught",
@@ -91,6 +92,13 @@
   }
 
   function showText() {
+    var heading = new createjs.Text(TEXT.name, "40px Arial", "#111111");
+    heading.x = width - 10;
+    heading.y = 100;
+    heading.rotation = 90;
+    heading.shadow = new createjs.Shadow(shadowColour, 2, 3, 6);
+    stage.addChild(heading);
+
     var timeHeading = new createjs.Text(TEXT.timer, "20px Arial", "white");
     timeHeading.x = 10;
     timeHeading.y = 10;
