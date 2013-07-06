@@ -14,9 +14,9 @@
   });
 
   var height = 600, width = 800, stage, queue, running = false;
-  var streetLeft = 110, streetRight = 685, streetBg, streetBg2, streetX = 0, streetY = 0, streetYTotal = 0, streetVelocity = 1, streetVelocityMax = 25, streetVelocityIncrement = 1;
-  var bull, bullWidth = 112, bullHeight = 152, bullStart = (width / 2) - (bullWidth / 2), bullX = bullStart, bullY = height - bullHeight, bullVelocityIncrement = 15;
-  var runnersMax = 2, runners = [], runnerWidth = 40, runnerHeight = 40, score = 0, runnerLine = bullY - 100, runnerMinVelocity = 1, runnerMaxVelocity = 15;
+  var streetContainer, streetLeft = 110, streetRight = 685, streetBg, streetBg2, streetX = 0, streetY = 0, streetYTotal = 0, streetVelocity = 1, streetVelocityMax = 25, streetVelocityIncrement = 1;
+  var bull, bullWidth = 70, bullHeight = 151, bullStartX = (width / 2) - (bullWidth / 2), bullStartY = height - bullHeight, bullVelocityIncrement = 15;
+  var runnersContainer, runnersMax = 2, runners = [], runnerWidth = 40, runnerHeight = 40, score = 0, runnerStartLine = bullStartY - 100, runnerMinVelocity = 1, runnerMaxVelocity = 15;
   var scoreText, mainText, helpContainer;
 
   var KEYCODE = {
@@ -49,14 +49,16 @@
   function init() {
     stage = new createjs.Stage("cnv");
     $("#cnv").click(function () {
-      if (score > 0) {
-        showMainScreen();
-      } else {
-        startGame();
+      if (!running) {
+        if (score > 0) {
+          showMainScreen();
+        } else {
+          startGame();
+        }
       }
     }).mousemove(function (evt) {
-      moveBull(evt.pageX);
-    }).mousewheel(function (evt, delta) {
+        moveBull(evt.pageX);
+      }).mousewheel(function (evt, delta) {
         if (delta === 1) {
           bullFaster();
         } else {
@@ -76,8 +78,8 @@
 
   function go() {
     showBg();
-    showBull();
     initRunners();
+    showBull();
     showText();
     showMainScreen();
     createjs.Ticker.setFPS(30);
@@ -151,19 +153,22 @@
       }
     });
 
+    streetContainer = new createjs.Container();
+    stage.addChild(streetContainer);
+
     streetBg = new createjs.BitmapAnimation(streetSprite);
     streetBg.name = "street1";
     streetBg.x = streetX;
     streetBg.y = streetY;
     streetBg.gotoAndPlay("be");
-    stage.addChild(streetBg);
+    streetContainer.addChild(streetBg);
 
     streetBg2 = new createjs.BitmapAnimation(streetSprite);
     streetBg2.name = "street2";
     streetBg2.x = streetX;
     streetBg2.y = streetY - height;
     streetBg2.gotoAndPlay("be");
-    stage.addChild(streetBg2);
+    streetContainer.addChild(streetBg2);
   }
 
   function showBull() {
@@ -178,24 +183,24 @@
 
     bull = new createjs.BitmapAnimation(bullSprite);
     bull.name = "bull";
-    bull.x = bullStart;
-    bull.y = bullY;
+    bull.x = bullStartX;
+    bull.y = bullStartY;
     bull.gotoAndPlay("stand");
     stage.addChild(bull);
   }
 
-  function moveBull(x) {
-    if (running && (x > streetLeft) && ((x + bullWidth) < streetRight)) {
-      bullX = x;
+  function moveBull(x, ignoreRunning) {
+    if ((running || ignoreRunning) && (x > streetLeft) && ((x + bullWidth) < streetRight)) {
+      bull.x = x;
     }
   }
 
   function bullRight() {
-    moveBull(bullX + bullVelocityIncrement);
+    moveBull(bull.x + bullVelocityIncrement);
   }
 
   function bullLeft() {
-    moveBull(bullX - bullVelocityIncrement);
+    moveBull(bull.x - bullVelocityIncrement);
   }
 
   function bullFaster() {
@@ -239,12 +244,14 @@
         createjs.Ticker.setPaused(paused);
         break;
       case KEYCODE.space:
-        // this is when the user has finished
-        // a game, so just reset
-        if (score > 0) {
-          showMainScreen();
-        } else {
-          startGame();
+        if (!running) {
+          // this is when the user has finished
+          // a game, so just reset
+          if (score > 0) {
+            showMainScreen();
+          } else {
+            startGame();
+          }
         }
         break;
       case KEYCODE.quit:
@@ -254,30 +261,32 @@
   }
 
   function startGame() {
-    if (!running) {
-      running = true;
-      setMainText("");
-      helpContainer.alpha = 0;
-    }
+    running = true;
+    setMainText("");
+    helpContainer.alpha = 0;
   }
 
   function showMainScreen() {
-    running = false;
     resetScore();
     setMainText(TEXT.start);
     helpContainer.alpha = 1;
-    moveBull(bullStart);
+    moveBull(bullStartX, true);
     resetRunners();
     streetBg.y = 0;
     streetBg2.y = streetBg.y - height;
     streetY = 0;
     streetYTotal = 0;
     streetVelocity = 1;
+    running = false;
   }
 
   function initRunners() {
+    runnersContainer = new createjs.Container();
+    stage.addChild(runnersContainer);
     for (var i = 0; i < runnersMax; i++) {
-      runners.push(createRunner(i));
+      var runner = createRunner(i);
+      runnersContainer.addChild(runner);
+      runners.push(runner);
     }
   }
 
@@ -307,7 +316,7 @@
   }
 
   function runnerRandomY() {
-    return runnerLine - (runnerHeight / 2) + (Math.random() * runnerHeight);
+    return runnerStartLine - (runnerHeight / 2) + (Math.random() * runnerHeight);
   }
 
   function createRunner(i) {
@@ -324,14 +333,12 @@
     var runner = new createjs.BitmapAnimation(runnerSprite);
 
     runner.name = "runner" + i;
-    stage.addChild(runner);
 
     return runner;
   }
 
   function tick() {
     if (running && !createjs.Ticker.getPaused()) {
-      bull.x = bullX;
       streetY += streetVelocity;
       streetYTotal += streetVelocity;
 
@@ -348,7 +355,7 @@
         if (runners[i].state === "running") {
           runners[i].positionY -= runners[i].velocity;
           runners[i].y = runners[i].positionY + streetYTotal;
-          if (collision(bullX, bullY, bullWidth, 40, runners[i].x, runners[i].y + 12, runnerWidth, 14)) {
+          if (collision(bull.x, bull.y, bullWidth, 40, runners[i].x, runners[i].y + 12, runnerWidth, 14)) {
             updateScore();
             runners[i].state = "caught";
             runners[i].gotoAndPlay("caught");
