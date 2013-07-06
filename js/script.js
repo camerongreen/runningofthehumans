@@ -36,6 +36,7 @@
     score: "Runners Caught",
     timer: "Time",
     bestTime: "Best time",
+    bestTimeMessage: "New best time!!!",
     seconds: "sec",
     victory: "You have won!!!",
     help: [
@@ -196,12 +197,16 @@
   }
 
   function victory() {
-    setMainText(TEXT.victory);
+    var message = TEXT.victory;
     var seconds = ticks / FPS;
     if ((bestTime === 0) || (seconds < bestTime)) {
       bestTime = seconds;
       showBestTimeText(seconds);
+      if (bestTime !== 0) {
+        message += "\n" + TEXT.bestTimeMessage;
+      }
     }
+    setMainText(message);
     running = false;
   }
 
