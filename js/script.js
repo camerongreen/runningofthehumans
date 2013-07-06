@@ -13,11 +13,11 @@
     init();
   });
 
-  var height = 600, width = 800, stage, queue, running = false;
+  var FPS=30, height = 600, width = 800, stage, queue, running = false, bestTime = 0, ticks=0;
   var streetContainer, streetLeft = 110, streetRight = 685, streetBg, streetBg2, streetX = 0, streetY = 0, streetYTotal = 0, streetVelocity = 1, streetVelocityMax = 25, streetVelocityIncrement = 1;
   var bull, bullWidth = 70, bullHeight = 151, bullStartX = (width / 2) - (bullWidth / 2), bullStartY = height - bullHeight, bullVelocityIncrement = 15;
-  var runnersContainer, runnersMax = 2, runners = [], runnerWidth = 40, runnerHeight = 40, score = 0, runnerStartLine = bullStartY - 100, runnerMinVelocity = 1, runnerMaxVelocity = 15;
-  var scoreText, mainText, helpContainer;
+  var runnersContainer, runnersMax = 10, runners = [], runnerWidth = 40, runnerHeight = 40, score = 0, runnerStartLine = bullStartY - 100, runnerMinVelocity = 1, runnerMaxVelocity = 15;
+  var scoreText, timeText, bestTimeText, mainText, helpContainer;
 
   var KEYCODE = {
     space: 32,
@@ -32,7 +32,10 @@
   var TEXT = {
     runnersBehind: "Runners behind",
     start: "Space/Click to start",
-    score: "Score",
+    score: "Runners Caught",
+    timer: "Time",
+    bestTime: "Best time",
+    seconds: "sec",
     victory: "You have won!!!",
     help: [
       "f/mousewheel = faster",
@@ -82,15 +85,35 @@
     showBull();
     showText();
     showMainScreen();
-    createjs.Ticker.setFPS(30);
+    createjs.Ticker.setFPS(FPS);
     createjs.Ticker.useRAF = true;
     createjs.Ticker.addEventListener("tick", tick);
   }
 
   function showText() {
+    var timeHeading = new createjs.Text(TEXT.timer, "20px Arial", "white");
+    timeHeading.x = 10;
+    timeHeading.y = 10;
+    stage.addChild(timeHeading);
+
+    timeText = new createjs.Text("0 " + TEXT.seconds, "20px Arial", "white");
+    timeText.x = 10;
+    timeText.y = timeHeading.y + 30;
+    stage.addChild(timeText);
+
+    var bestTimeHeading = new createjs.Text(TEXT.bestTime, "20px Arial", "white");
+    bestTimeHeading.x = 10;
+    bestTimeHeading.y = height - 80;
+    stage.addChild(bestTimeHeading);
+
+    bestTimeText = new createjs.Text("0 " + TEXT.seconds, "20px Arial", "white");
+    bestTimeText.x = 10;
+    bestTimeText.y = bestTimeHeading.y + 30;
+    stage.addChild(bestTimeText);
+
     var scoreHeading = new createjs.Text(TEXT.score, "20px Arial", "white");
     scoreHeading.x = 10;
-    scoreHeading.y = 10;
+    scoreHeading.y = timeText.y + 30;
     stage.addChild(scoreHeading);
 
     scoreText = new createjs.Text(score + "/" + runnersMax, "20px Arial", "white");
@@ -124,9 +147,22 @@
     scoreText.text = score + "/" + runnersMax;
   }
 
+  function showTimeText(seconds) {
+    timeText.text = seconds.toFixed(2) + " " + TEXT.seconds;
+  }
+
+  function showBestTimeText(seconds) {
+    bestTimeText.text = seconds.toFixed(2) + " " + TEXT.seconds;
+  }
+
   function resetScore() {
     score = 0;
     showScoreText();
+  }
+
+  function resetTime() {
+    ticks = 0;
+    showTimeText(ticks);
   }
 
   function updateScore() {
@@ -138,8 +174,19 @@
     }
   }
 
+  function updateTime() {
+    ticks++;
+    var seconds = ticks / FPS;
+    showTimeText(seconds);
+  }
+
   function victory() {
     setMainText(TEXT.victory);
+    var seconds = ticks / FPS;
+    if ((bestTime === 0) || (seconds < bestTime)) {
+      bestTime = seconds;
+      showBestTimeText(seconds);
+    }
     running = false;
   }
 
@@ -268,6 +315,7 @@
 
   function showMainScreen() {
     resetScore();
+    resetTime();
     setMainText(TEXT.start);
     helpContainer.alpha = 1;
     moveBull(bullStartX, true);
@@ -339,6 +387,8 @@
 
   function tick() {
     if (running && !createjs.Ticker.getPaused()) {
+      updateTime();
+
       streetY += streetVelocity;
       streetYTotal += streetVelocity;
 
