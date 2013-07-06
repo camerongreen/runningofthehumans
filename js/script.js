@@ -17,7 +17,7 @@
   var streetContainer, streetLeft = 110, streetRight = 685, streetBg, streetBg2, streetX = 0, streetY = 0, streetYTotal = 0, streetVelocity = 1, streetVelocityMax = 25, streetVelocityIncrement = 1;
   var bull, bullWidth = 70, bullHeight = 151, bullStartX = (width / 2) - (bullWidth / 2), bullStartY = height - bullHeight, bullVelocityIncrement = 15;
   var runnersContainer, runnersMax = 10, runners = [], runnerWidth = 40, runnerHeight = 40, score = 0, runnerStartLine = bullStartY - 100, runnerMinVelocity = 1, runnerMaxVelocity = 15;
-  var scoreText, timeText, bestTimeText, mainText, helpContainer;
+  var scoreText, timeText, bestTimeText, mainText, helpContainer, shadowColour = "#000000";
 
   var KEYCODE = {
     space: 32,
@@ -94,36 +94,43 @@
     var timeHeading = new createjs.Text(TEXT.timer, "20px Arial", "white");
     timeHeading.x = 10;
     timeHeading.y = 10;
+    timeHeading.shadow = new createjs.Shadow(shadowColour, 2, 3, 6);
     stage.addChild(timeHeading);
 
     timeText = new createjs.Text("0 " + TEXT.seconds, "20px Arial", "white");
     timeText.x = 10;
     timeText.y = timeHeading.y + 30;
+    timeText.shadow = new createjs.Shadow(shadowColour, 2, 3, 6);
     stage.addChild(timeText);
 
     var bestTimeHeading = new createjs.Text(TEXT.bestTime, "20px Arial", "white");
     bestTimeHeading.x = 10;
     bestTimeHeading.y = height - 80;
+    bestTimeHeading.shadow = new createjs.Shadow(shadowColour, 2, 3, 6);
     stage.addChild(bestTimeHeading);
 
     bestTimeText = new createjs.Text("0 " + TEXT.seconds, "20px Arial", "white");
     bestTimeText.x = 10;
     bestTimeText.y = bestTimeHeading.y + 30;
+    bestTimeText.shadow = new createjs.Shadow(shadowColour, 2, 3, 6);
     stage.addChild(bestTimeText);
 
     var scoreHeading = new createjs.Text(TEXT.score, "20px Arial", "white");
     scoreHeading.x = 10;
     scoreHeading.y = timeText.y + 30;
+    scoreHeading.shadow = new createjs.Shadow(shadowColour, 2, 3, 6);
     stage.addChild(scoreHeading);
 
     scoreText = new createjs.Text(score + "/" + runnersMax, "20px Arial", "white");
     scoreText.x = 10;
     scoreText.y = scoreHeading.y + 30;
+    scoreText.shadow = new createjs.Shadow(shadowColour, 2, 3, 6);
     stage.addChild(scoreText);
 
     mainText = new createjs.Text(TEXT.start, "30px Arial", "white");
     mainText.x = width / 2 - 125;
     mainText.y = height / 2 - 15;
+    mainText.shadow = new createjs.Shadow(shadowColour, 2, 3, 6);
     stage.addChild(mainText);
 
     var textHeight = 100;
