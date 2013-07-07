@@ -13,7 +13,7 @@
     init();
   });
 
-  var FPS = 30, height = 600, width = 800, stage, queue, running = false, bestTime = 0, ticks = 0;
+  var FPS = 30, height = 600, width = 800, stage, queue, running = false, bestTime = 0, ticks = 0, soundOn = true;
   var streetContainer, streetLeft = 110, streetRight = 685, streetBg, streetBg2, streetX = 0, streetY = 0, streetYTotal = 0, streetVelocity = 1, streetVelocityMax = 25, streetVelocityIncrement = 1;
   var bull, bullWidth = 70, bullHeight = 151, bullStartX = (width / 2) - (bullWidth / 2), bullStartY = height - bullHeight, bullVelocityIncrement = 15;
   var runnersContainer, runnersMax = 10, runners = [], runnerWidth = 40, runnerHeight = 40, score = 0, runnerStartLine = bullStartY - 100, runnerMinVelocity = 1, runnerMaxVelocity = 15;
@@ -27,7 +27,8 @@
     up: 102, // f (fast)
     left: 108, // l (left)
     right: 39, // ; (right)
-    down: 115, // s (slow)
+    down: 118, // v (slow)
+    sound: 115, // s (sound)
     pause: 112, // p (pause)
     quit: 113 // q (quit)
   };
@@ -44,10 +45,11 @@
     victory: "Well done!",
     help: [
       "f/mousewheel = faster",
-      "s/mousewheel = slower",
+      "v/mousewheel = slower",
       "l/mouse = left",
       '"/mouse = right',
-      "p = pause",
+      "p = toggle pause",
+      "s = toggle sound",
       "q = quit"
     ]
   };
@@ -328,6 +330,15 @@
       case KEYCODE.down:
         bullSlower();
         break;
+      case KEYCODE.sound:
+        if (soundOn) {
+          createjs.Sound.stop();
+          soundOn = false;
+        } else {
+          soundOn = true;
+          createjs.Sound.play("espana");
+        }
+        break;
       case KEYCODE.pause:
         var paused = !createjs.Ticker.getPaused();
         createjs.Ticker.setPaused(paused);
@@ -353,7 +364,9 @@
     running = true;
     setMainText("");
     helpContainer.alpha = 0;
-    createjs.Sound.play("espana");
+    if (soundOn) {
+      createjs.Sound.play("espana");
+    }
     for (var i = 0; i < runnersMax; i++) {
       runners[i].gotoAndPlay("run");
     }
@@ -458,7 +471,9 @@
           runners[i].positionY -= runners[i].velocity;
           runners[i].y = runners[i].positionY + streetYTotal;
           if (collision(bull.x, bull.y, bullWidth, 40, runners[i].x, runners[i].y + 12, runnerWidth, 14)) {
-            createjs.Sound.play("ole");
+            if (soundOn) {
+              createjs.Sound.play("ole");
+            }
             updateScore();
             runners[i].state = "caught";
             runners[i].gotoAndPlay("caught");
