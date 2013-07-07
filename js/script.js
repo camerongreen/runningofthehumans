@@ -13,24 +13,27 @@
     init();
   });
 
-  var FPS = 30, height = 600, width = 800, stage, queue, running = false, bestTime = 0, ticks = 0, soundOn = true;
+  var FPS = 30, height = 600, width = 800, stage, queue, running = false, bestTime = 0, ticks = 0, soundOn = true, basePath;
   var streetContainer, streetLeft = 110, streetRight = 685, streetBg, streetBg2, streetX = 0, streetY = 0, streetYTotal = 0, streetVelocity = 1, streetVelocityMax = 25, streetVelocityIncrement = 1;
   var bull, bullWidth = 70, bullHeight = 151, bullStartX = (width / 2) - (bullWidth / 2), bullStartY = height - bullHeight, bullVelocityIncrement = 15;
-  var runnersContainer, runnersMax = 12, runners = [], runnerWidth = 40, runnerHeight = 40, score = 0, runnerStartLine = bullStartY - 100, runnerMinVelocity = 1, runnerMaxVelocity = 15;
+  var runnersContainer, runnersMax = 18, runners = [], runnerWidth = 40, runnerHeight = 40, score = 0, runnerStartLine = bullStartY - 100, runnerMinVelocity = 5, runnerMaxVelocity = 20;
   var scoreText, timeText, bestTimeText, mainText, helpContainer, shadowColour = "#000000";
-  var textShadow = new createjs.Shadow(shadowColour, 2, 3, 6);
-  var runnerShadow = new createjs.Shadow(shadowColour, 6, 9, 12);
-  var bullShadow = new createjs.Shadow(shadowColour, 6, 9, 18);
+
+  if (typeof Drupal !== "undefined") {
+    basePath = "/" + Drupal.settings.running.basePath;
+  } else {
+    basePath = ".";
+  }
 
   var KEYCODE = {
     space: 32,
-    up: 102, // f (fast)
-    left: 108, // l (left)
-    right: 39, // ; (right)
-    down: 118, // v (slow)
-    sound: 115, // s (sound)
-    pause: 112, // p (pause)
-    quit: 113 // q (quit)
+    up: 38,
+    left: 37, 
+    right: 39,
+    down: 40,
+    sound: 83, // s
+    pause: 80, // p
+    quit: 81 // q
   };
 
   var TEXT = {
@@ -44,20 +47,20 @@
     seconds: "sec",
     victory: "Well done!",
     help: [
-      "f/mousewheel = faster",
-      "v/mousewheel = slower",
-      "l/mouse = left",
-      '"/mouse = right',
+      "up/mousewheel = faster",
+      "down/mousewheel = slower",
+      "left/mouse = left",
+      'right/mouse = right',
       "p = toggle pause",
       "s = toggle sound",
       "q = quit"
     ]
   };
 
-  document.onkeypress = handleKeyPress;
-
   function init() {
     stage = new createjs.Stage("cnv");
+    $(document).keydown(handleKeyPress);
+
     $("#cnv").click(function () {
       if (!running) {
         if (score > 0) {
@@ -67,7 +70,9 @@
         }
       }
     }).mousemove(function (evt) {
-        moveBull(evt.pageX);
+        // not sure about the 1.1, the mouse pointer was
+        // out of sync with the bull otherwise :/
+        moveBull(evt.pageX - (1.1 * this.offsetLeft));
       }).mousewheel(function (evt, delta) {
         if (delta === 1) {
           bullFaster();
@@ -76,26 +81,25 @@
         }
         return false;
       });
-
+      
+    var imagePath = basePath + "/images";
     queue = new createjs.LoadQueue(false);
     queue.addEventListener("complete", go);
     queue.loadManifest([
-      {id: "bull", src: "images/bull.png"}, //120x160
-      {id: "runner", src: "images/runner.png"},
-      {id: "bg", src: "images/bg.png"} //50x50
+      {id: "bull", src: imagePath + "/bull.png"},
+      {id: "runner", src: imagePath + "/runner.png"},
+      {id: "bg", src: imagePath + "/bg.png"}
     ]);
 
-    var audioPath = "sounds/";
+    var audioPath = basePath + "/sounds/";
     var manifest = [
       {
         id: "ole",
-        src: audioPath + "ole.mp3|" + audioPath + "ole.ogg",
-        volume: 0.1
+        src: audioPath + "ole.mp3|" + audioPath + "ole.ogg"
       },
       {
         id: "espana",
-        src: audioPath + "espana.mp3|" + audioPath + "espana.ogg",
-        loop: -1
+        src: audioPath + "espana.mp3|" + audioPath + "espana.ogg"
       }
     ];
 
@@ -114,6 +118,8 @@
   }
 
   function showText() {
+    var textShadow = new createjs.Shadow(shadowColour, 2, 3, 6);
+
     mainText = new createjs.Text(TEXT.start, "30px Arial", "white");
     mainText.x = width / 2;
     mainText.y = height / 2 - 25;
@@ -275,7 +281,7 @@
     bull.name = "bull";
     bull.x = bullStartX;
     bull.y = bullStartY;
-    bull.shadow = bullShadow;
+    bull.shadow = new createjs.Shadow(shadowColour, 6, 9, 18);
     bull.gotoAndPlay("stand");
     stage.addChild(bull);
   }
@@ -312,12 +318,8 @@
     }
   }
 
-  function handleKeyPress(e) {
-    if (!e) {
-      e = window.event;
-    }
-    //console.log(e.keyCode);
-    switch (e.keyCode) {
+  function handleKeyPress(evt) {
+    switch (evt.which) {
       case KEYCODE.right:
         bullRight();
         break;
@@ -336,7 +338,8 @@
           soundOn = false;
         } else {
           soundOn = true;
-          createjs.Sound.play("espana");
+          var espana = createjs.Sound.play("espana");
+          espana.loop = -1;
         }
         break;
       case KEYCODE.pause:
@@ -358,6 +361,8 @@
         showMainScreen();
         break;
     }
+
+    evt.preventDefault();
   }
 
   function startGame() {
@@ -365,7 +370,8 @@
     setMainText("");
     helpContainer.alpha = 0;
     if (soundOn) {
-      createjs.Sound.play("espana");
+      var espana = createjs.Sound.play("espana");
+      espana.loop = -1;
     }
     for (var i = 0; i < runnersMax; i++) {
       runners[i].gotoAndPlay("run");
@@ -445,7 +451,7 @@
     var runner = new createjs.BitmapAnimation(runnerSprite);
 
     runner.name = "runner" + i;
-    runner.shadow = runnerShadow;
+    runner.shadow = new createjs.Shadow(shadowColour, 6, 9, 12);
 
     return runner;
   }
@@ -472,7 +478,8 @@
           runners[i].y = runners[i].positionY + streetYTotal;
           if (collision(bull.x, bull.y, bullWidth, 40, runners[i].x, runners[i].y + 12, runnerWidth, 14)) {
             if (soundOn) {
-              createjs.Sound.play("ole");
+              var ole = createjs.Sound.play("ole");
+              ole.setVolume(0.2);
             }
             updateScore();
             runners[i].state = "caught";
