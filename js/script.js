@@ -13,11 +13,14 @@
     init();
   });
 
-  var FPS=30, height = 600, width = 800, stage, queue, running = false, bestTime = 0, ticks=0;
+  var FPS = 30, height = 600, width = 800, stage, queue, running = false, bestTime = 0, ticks = 0;
   var streetContainer, streetLeft = 110, streetRight = 685, streetBg, streetBg2, streetX = 0, streetY = 0, streetYTotal = 0, streetVelocity = 1, streetVelocityMax = 25, streetVelocityIncrement = 1;
   var bull, bullWidth = 70, bullHeight = 151, bullStartX = (width / 2) - (bullWidth / 2), bullStartY = height - bullHeight, bullVelocityIncrement = 15;
   var runnersContainer, runnersMax = 10, runners = [], runnerWidth = 40, runnerHeight = 40, score = 0, runnerStartLine = bullStartY - 100, runnerMinVelocity = 1, runnerMaxVelocity = 15;
   var scoreText, timeText, bestTimeText, mainText, helpContainer, shadowColour = "#000000";
+  var textShadow = new createjs.Shadow(shadowColour, 2, 3, 6);
+  var runnerShadow = new createjs.Shadow(shadowColour, 6, 9, 12);
+  var bullShadow = new createjs.Shadow(shadowColour, 6, 9, 18);
 
   var KEYCODE = {
     space: 32,
@@ -33,12 +36,12 @@
     name: "Running of the humans",
     runnersBehind: "Runners behind",
     start: "Space/Click to start",
-    score: "Runners Caught",
+    score: "Tally",
     timer: "Time",
     bestTime: "Best time",
     bestTimeMessage: "New best time!!!",
     seconds: "sec",
-    victory: "You have won!!!",
+    victory: "Well done!",
     help: [
       "f/mousewheel = faster",
       "s/mousewheel = slower",
@@ -97,49 +100,49 @@
     heading.x = width - 10;
     heading.y = 100;
     heading.rotation = 90;
-    heading.shadow = new createjs.Shadow(shadowColour, 2, 3, 6);
+    heading.shadow = textShadow;
     stage.addChild(heading);
 
-    var timeHeading = new createjs.Text(TEXT.timer, "20px Arial", "white");
+    var timeHeading = new createjs.Text(TEXT.timer, "15px Arial", "white");
     timeHeading.x = 10;
     timeHeading.y = 10;
-    timeHeading.shadow = new createjs.Shadow(shadowColour, 2, 3, 6);
+    timeHeading.shadow = textShadow;
     stage.addChild(timeHeading);
 
     timeText = new createjs.Text("0 " + TEXT.seconds, "20px Arial", "white");
     timeText.x = 10;
-    timeText.y = timeHeading.y + 30;
-    timeText.shadow = new createjs.Shadow(shadowColour, 2, 3, 6);
+    timeText.y = timeHeading.y + 25;
+    timeText.shadow = textShadow;
     stage.addChild(timeText);
 
-    var bestTimeHeading = new createjs.Text(TEXT.bestTime, "20px Arial", "white");
+    var bestTimeHeading = new createjs.Text(TEXT.bestTime, "15px Arial", "white");
     bestTimeHeading.x = 10;
     bestTimeHeading.y = height - 80;
-    bestTimeHeading.shadow = new createjs.Shadow(shadowColour, 2, 3, 6);
+    bestTimeHeading.shadow = textShadow;
     stage.addChild(bestTimeHeading);
 
     bestTimeText = new createjs.Text("0 " + TEXT.seconds, "20px Arial", "white");
     bestTimeText.x = 10;
-    bestTimeText.y = bestTimeHeading.y + 30;
-    bestTimeText.shadow = new createjs.Shadow(shadowColour, 2, 3, 6);
+    bestTimeText.y = bestTimeHeading.y + 25;
+    bestTimeText.shadow = textShadow;
     stage.addChild(bestTimeText);
 
-    var scoreHeading = new createjs.Text(TEXT.score, "20px Arial", "white");
+    var scoreHeading = new createjs.Text(TEXT.score, "15px Arial", "white");
     scoreHeading.x = 10;
-    scoreHeading.y = timeText.y + 30;
-    scoreHeading.shadow = new createjs.Shadow(shadowColour, 2, 3, 6);
+    scoreHeading.y = timeText.y + 40;
+    scoreHeading.shadow = textShadow;
     stage.addChild(scoreHeading);
 
     scoreText = new createjs.Text(score + "/" + runnersMax, "20px Arial", "white");
     scoreText.x = 10;
-    scoreText.y = scoreHeading.y + 30;
-    scoreText.shadow = new createjs.Shadow(shadowColour, 2, 3, 6);
+    scoreText.y = scoreHeading.y + 25;
+    scoreText.shadow = textShadow;
     stage.addChild(scoreText);
 
     mainText = new createjs.Text(TEXT.start, "30px Arial", "white");
     mainText.x = width / 2 - 125;
     mainText.y = height / 2 - 15;
-    mainText.shadow = new createjs.Shadow(shadowColour, 2, 3, 6);
+    mainText.shadow = textShadow;
     stage.addChild(mainText);
 
     var textHeight = 100;
@@ -199,10 +202,11 @@
   function victory() {
     var message = TEXT.victory;
     var seconds = ticks / FPS;
-    if ((bestTime === 0) || (seconds < bestTime)) {
+    var newBestTime = (bestTime !== 0) && (seconds < bestTime);
+    if ((bestTime === 0) || newBestTime) {
       bestTime = seconds;
       showBestTimeText(seconds);
-      if (bestTime !== 0) {
+      if (newBestTime) {
         message += "\n" + TEXT.bestTimeMessage;
       }
     }
@@ -252,6 +256,7 @@
     bull.name = "bull";
     bull.x = bullStartX;
     bull.y = bullStartY;
+    bull.shadow = bullShadow;
     bull.gotoAndPlay("stand");
     stage.addChild(bull);
   }
@@ -331,6 +336,9 @@
     running = true;
     setMainText("");
     helpContainer.alpha = 0;
+    for (var i = 0; i < runnersMax; i++) {
+      runners[i].gotoAndPlay("run");
+    }
   }
 
   function showMainScreen() {
@@ -391,16 +399,21 @@
     var image = queue.getResult("runner");
     var runnerSprite = new createjs.SpriteSheet({
       images: [image],
-      frames: {width: runnerWidth, height: runnerHeight, regX: 0, regY: 0},
+      frames: {width: runnerWidth, count: 7, height: runnerHeight, regX: 0, regY: 0},
       animations: {
         stand: 0,
-        caught: 1
+        run: {
+          frames: [3, 2, 1, 2, 3, 4, 5, 4],
+          frequency: 3
+        },
+        caught: 6
       }
     });
 
     var runner = new createjs.BitmapAnimation(runnerSprite);
 
     runner.name = "runner" + i;
+    runner.shadow = runnerShadow;
 
     return runner;
   }
