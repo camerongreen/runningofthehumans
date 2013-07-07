@@ -82,6 +82,16 @@
       {id: "runner", src: "images/runner.png"},
       {id: "bg", src: "images/bg.png"} //50x50
     ]);
+
+    var audioPath = "sounds/";
+    var manifest = [
+      {
+        id: "ole",
+        src: audioPath + "ole.mp3|" + audioPath + "ole.ogg"
+      }
+    ];
+
+    createjs.Sound.registerManifest(manifest);
   }
 
   function go() {
@@ -96,6 +106,14 @@
   }
 
   function showText() {
+    mainText = new createjs.Text(TEXT.start, "30px Arial", "white");
+    mainText.x = width / 2;
+    mainText.y = height / 2 - 25;
+    mainText.shadow = textShadow;
+    mainText.textAlign = "center";
+    stage.addChild(mainText);
+
+    var textHeight = 100;
     var heading = new createjs.Text(TEXT.name, "40px Arial", "#111111");
     heading.x = width - 10;
     heading.y = 100;
@@ -139,13 +157,6 @@
     scoreText.shadow = textShadow;
     stage.addChild(scoreText);
 
-    mainText = new createjs.Text(TEXT.start, "30px Arial", "white");
-    mainText.x = width / 2 - 125;
-    mainText.y = height / 2 - 15;
-    mainText.shadow = textShadow;
-    stage.addChild(mainText);
-
-    var textHeight = 100;
     helpContainer = new createjs.Container();
     stage.addChild(helpContainer);
 
@@ -439,6 +450,7 @@
           runners[i].positionY -= runners[i].velocity;
           runners[i].y = runners[i].positionY + streetYTotal;
           if (collision(bull.x, bull.y, bullWidth, 40, runners[i].x, runners[i].y + 12, runnerWidth, 14)) {
+            createjs.Sound.play("ole");
             updateScore();
             runners[i].state = "caught";
             runners[i].gotoAndPlay("caught");
