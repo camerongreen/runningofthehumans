@@ -16,7 +16,7 @@
   var FPS = 30, height = 600, width = 800, stage, queue, running = false, bestTime = 0, ticks = 0, soundOn = true;
   var streetContainer, streetLeft = 110, streetRight = 685, streetBg, streetBg2, streetX = 0, streetY = 0, streetYTotal = 0, streetVelocity = 1, streetVelocityMax = 25, streetVelocityIncrement = 1;
   var bull, bullWidth = 70, bullHeight = 151, bullStartX = (width / 2) - (bullWidth / 2), bullStartY = height - bullHeight, bullVelocityIncrement = 15;
-  var runnersContainer, runnersMax = 10, runners = [], runnerWidth = 40, runnerHeight = 40, score = 0, runnerStartLine = bullStartY - 100, runnerMinVelocity = 1, runnerMaxVelocity = 15;
+  var runnersContainer, runnersMax = 12, runners = [], runnerWidth = 40, runnerHeight = 40, score = 0, runnerStartLine = bullStartY - 100, runnerMinVelocity = 1, runnerMaxVelocity = 15;
   var scoreText, timeText, bestTimeText, mainText, helpContainer, shadowColour = "#000000";
   var textShadow = new createjs.Shadow(shadowColour, 2, 3, 6);
   var runnerShadow = new createjs.Shadow(shadowColour, 6, 9, 12);
@@ -121,7 +121,6 @@
     mainText.textAlign = "center";
     stage.addChild(mainText);
 
-    var textHeight = 100;
     var heading = new createjs.Text(TEXT.name, "40px Arial", "#111111");
     heading.x = width - 10;
     heading.y = 100;
@@ -168,6 +167,7 @@
     helpContainer = new createjs.Container();
     stage.addChild(helpContainer);
 
+    var textHeight = 60;
     for (var i = 0, l = TEXT.help.length; i < l; i++) {
       var help = new createjs.Text(TEXT.help[i], "20px Arial", "black");
       help.x = width / 2 - 80;
