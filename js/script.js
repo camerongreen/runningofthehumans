@@ -60,6 +60,7 @@
   function init() {
     stage = new createjs.Stage("cnv");
     $(document).keydown(handleKeyPress);
+    var offset = $("#cnv").offset();
 
     $("#cnv").click(function () {
       if (!running) {
@@ -70,9 +71,7 @@
         }
       }
     }).mousemove(function (evt) {
-        // not sure about the 1.1, the mouse pointer was
-        // out of sync with the bull otherwise :/
-        moveBull(evt.pageX - (1.1 * this.offsetLeft));
+        moveBull(evt.pageX - offset.left);
       }).mousewheel(function (evt, delta) {
         if (delta === 1) {
           bullFaster();
