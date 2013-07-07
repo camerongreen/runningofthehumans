@@ -87,7 +87,13 @@
     var manifest = [
       {
         id: "ole",
-        src: audioPath + "ole.mp3|" + audioPath + "ole.ogg"
+        src: audioPath + "ole.mp3|" + audioPath + "ole.ogg",
+        volume: 0.1
+      },
+      {
+        id: "espana",
+        src: audioPath + "espana.mp3|" + audioPath + "espana.ogg",
+        loop: -1
       }
     ];
 
@@ -347,6 +353,7 @@
     running = true;
     setMainText("");
     helpContainer.alpha = 0;
+    createjs.Sound.play("espana");
     for (var i = 0; i < runnersMax; i++) {
       runners[i].gotoAndPlay("run");
     }
@@ -365,6 +372,7 @@
     streetYTotal = 0;
     streetVelocity = 1;
     running = false;
+    createjs.Sound.stop();
   }
 
   function initRunners() {
