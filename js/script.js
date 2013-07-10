@@ -15,7 +15,7 @@
 
   var FPS = 30, height = 600, width = 800, stage, queue, running = false, bestTime = 0, ticks = 0, soundOn = true, basePath;
   var streetContainer, streetLeft = 110, streetRight = 685, streetBg, streetBg2, streetX = 0, streetY = 0, streetYTotal = 0, streetVelocity = 0, streetVelocityMax = 25, streetVelocityIncrement = 1;
-  var bull, bullWidth = 70, bullHeight = 151, bullStartX = (width / 2) - (bullWidth / 2), bullStartY = height - bullHeight, bullVelocityIncrement = 15, bullSpeedY;
+  var bull, bullWidth = 70, bullHeight = 151, bullStartX = (width / 2) - (bullWidth / 2), bullStartY = height - bullHeight, bullVelocityIncrement = 15, bullSpeedY, bullSpeedIndicator;
   var runnersContainer, runnersMax = 18, runners = [], runnerWidth = 40, runnerHeight = 40, score = 0, runnerStartLine = bullStartY - 100, runnerMinVelocity = 5, runnerMaxVelocity = 20;
   var scoreText, timeText, bestTimeText, mainText, helpContainer, shadowColour = "#000000";
 
@@ -72,15 +72,15 @@
         }
       }
     }).mousemove(function (evt) {
-        moveBull(evt.pageX - offset.left);
-      }).mousewheel(function (evt, delta) {
-        if (delta === 1) {
-          bullFaster();
-        } else {
-          bullSlower();
-        }
-        return false;
-      });
+      moveBull(evt.pageX - offset.left);
+    }).mousewheel(function (evt, delta) {
+      if (delta > 0) {
+        bullFaster();
+      } else {
+        bullSlower();
+      }
+      return false;
+    });
       
     var imagePath = basePath + "/images";
     queue = new createjs.LoadQueue(false);
@@ -203,15 +203,19 @@
     timeText.text = seconds.toFixed(2) + " " + TEXT.seconds;
   }
 
+  function updateBullSpeedIndicator() {
+    stage.removeChild(bullSpeedIndicator);
+
+    bullSpeedIndicator = new createjs.Shape();
+    var scaledSpeed = (98 / streetVelocityMax) * streetVelocity;
+    bullSpeedIndicator.graphics.beginLinearGradientFill(["#600","#E04006"], [0, 1], 0, bullSpeedY + 1, 0, bullSpeedY + 1 + 98).drawRect(21, (bullSpeedY + 99) - scaledSpeed, 24, scaledSpeed);
+    stage.addChild(bullSpeedIndicator);
+  }
 
   function showBullSpeedContainer() {
     var outer = new createjs.Shape();
     outer.graphics.beginFill("#fff").drawRect(20, bullSpeedY, 26, 100);
     stage.addChild(outer);
-    var inner = new createjs.Shape();
-    var scaledSpeed = (98 / streetVelocityMax) * streetVelocity;
-    inner.graphics.beginLinearGradientFill(["#600","#E04006"], [0, 1], 0, bullSpeedY + 1, 0, bullSpeedY + 1 + 98).drawRect(21, (bullSpeedY + 99) - scaledSpeed, 24, scaledSpeed);
-    stage.addChild(inner);
   }
 
   function showBestTimeText(seconds) {
@@ -409,7 +413,7 @@
     streetBg2.y = streetBg.y - height;
     streetY = 0;
     streetYTotal = 0;
-    streetVelocity = 1;
+    streetVelocity = 0;
     running = false;
     createjs.Sound.stop();
   }
@@ -479,7 +483,7 @@
   function tick() {
     if (running && !createjs.Ticker.getPaused()) {
       updateTime();
-      showBullSpeedContainer();
+      updateBullSpeedIndicator();
 
       streetY += streetVelocity;
       streetYTotal += streetVelocity;
