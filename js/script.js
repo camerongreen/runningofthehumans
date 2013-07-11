@@ -1,4 +1,8 @@
 /*globals document jQuery clearjs*/
+
+var org = org || {};
+org.camerongreen = org.camerongreen || {};
+
 /**
  *
  *
@@ -15,8 +19,8 @@
 
   var FPS = 30, height = 600, width = 800, stage, queue, running = false, bestTime = 0, ticks = 0, soundOn = true, basePath;
   var streetContainer, streetLeft = 110, streetRight = 685, streetBg, streetBg2, streetX = 0, streetY = 0, streetYTotal = 0, streetVelocity = 0, streetVelocityMax = 25, streetVelocityIncrement = 1;
-  var bull, bullWidth = 70, bullHeight = 151, bullStartX = (width / 2) - (bullWidth / 2), bullStartY = height - bullHeight, bullVelocityIncrement = 15, bullSpeedY, bullSpeedIndicator;
-  var runnersContainer, runnersMax = 18, runners = [], runnerWidth = 40, runnerHeight = 40, score = 0, runnerStartLine = bullStartY - 100, runnerMinVelocity = 5, runnerMaxVelocity = 20;
+  var bull, bullSpeedY, bullSpeedIndicator;
+  var runnersContainer, runnersMax = 18, runners = [], runnerWidth = 40, runnerHeight = 40, score = 0, runnerMinVelocity = 5, runnerMaxVelocity = 20;
   var scoreText, timeText, bestTimeText, mainText, helpContainer, shadowColour = "#000000";
 
   if (typeof Drupal !== "undefined") {
@@ -72,12 +76,14 @@
         }
       }
     }).mousemove(function (evt) {
-      moveBull(evt.pageX - offset.left);
+        if (running) {
+          bull.move(evt.pageX - offset.left);
+        }
     }).mousewheel(function (evt, delta) {
       if (delta > 0) {
-        bullFaster();
+        streetFaster();
       } else {
-        bullSlower();
+        streetSlower();
       }
       return false;
     });
@@ -109,7 +115,7 @@
   function go() {
     showBg();
     initRunners();
-    showBull();
+    initBull();
     showText();
     showBullSpeedContainer();
     showMainScreen();
@@ -203,6 +209,12 @@
     timeText.text = seconds.toFixed(2) + " " + TEXT.seconds;
   }
 
+  /**
+   * Not sure how canvas works, but shapes don't support resizing except by
+   * scaling, which doesn't really work for me here.  So I've just redrawn it
+   * though removed it first to avoid adding gazillions of child objects
+   * and causing a memory leak
+   */
   function updateBullSpeedIndicator() {
     stage.removeChild(bullSpeedIndicator);
 
@@ -266,7 +278,7 @@
     var image = queue.getResult("bg");
     var streetSprite = new createjs.SpriteSheet({
       images: [image],
-      frames: {width: width, height: height, regX: 0, regY: 0},
+      frames: {width: image.width, height: image.height, regX: 0, regY: 0},
       animations: {
         be: 0
       }
@@ -290,40 +302,13 @@
     streetContainer.addChild(streetBg2);
   }
 
-  function showBull() {
+  function initBull() {
     var image = queue.getResult("bull");
-    var bullSprite = new createjs.SpriteSheet({
-      images: [image],
-      frames: {width: bullWidth, height: bullHeight, regX: 0, regY: 0},
-      animations: {
-        stand: 0
-      }
-    });
-
-    bull = new createjs.BitmapAnimation(bullSprite);
-    bull.name = "bull";
-    bull.x = bullStartX;
-    bull.y = bullStartY;
-    bull.shadow = new createjs.Shadow(shadowColour, 6, 9, 18);
-    bull.gotoAndPlay("stand");
+    bull = new org.camerongreen.Bull(image, streetLeft, streetRight, height, shadowColour);
     stage.addChild(bull);
   }
 
-  function moveBull(x, ignoreRunning) {
-    if ((running || ignoreRunning) && (x > streetLeft) && ((x + bullWidth) < streetRight)) {
-      bull.x = x;
-    }
-  }
-
-  function bullRight() {
-    moveBull(bull.x + bullVelocityIncrement);
-  }
-
-  function bullLeft() {
-    moveBull(bull.x - bullVelocityIncrement);
-  }
-
-  function bullFaster() {
+  function streetFaster() {
     if (running && (streetVelocity < streetVelocityMax)) {
       streetVelocity += streetVelocityIncrement;
       if (streetVelocity > streetVelocityMax) {
@@ -332,7 +317,7 @@
     }
   }
 
-  function bullSlower() {
+  function streetSlower() {
     if (running && (streetVelocity > 0)) {
       streetVelocity -= (2 * streetVelocityIncrement);
       if (streetVelocity < 0) {
@@ -344,16 +329,16 @@
   function handleKeyPress(evt) {
     switch (evt.which) {
       case KEYCODE.right:
-        bullRight();
+        bull.right();
         break;
       case KEYCODE.left:
-        bullLeft();
+        bull.left();
         break;
       case KEYCODE.up:
-        bullFaster();
+        streetFaster();
         break;
       case KEYCODE.down:
-        bullSlower();
+        streetSlower();
         break;
       case KEYCODE.sound:
         if (soundOn) {
@@ -407,7 +392,7 @@
     resetTime();
     setMainText(TEXT.start);
     helpContainer.alpha = 1;
-    moveBull(bullStartX, true);
+    bull.reset();
     resetRunners();
     streetBg.y = 0;
     streetBg2.y = streetBg.y - height;
@@ -454,7 +439,7 @@
   }
 
   function runnerRandomY() {
-    return runnerStartLine - (runnerHeight / 2) + (Math.random() * runnerHeight);
+    return (bull.y - 100) - (runnerHeight / 2) + (Math.random() * runnerHeight);
   }
 
   function createRunner(i) {
@@ -501,7 +486,7 @@
         if (runners[i].state === "running") {
           runners[i].positionY -= runners[i].velocity;
           runners[i].y = runners[i].positionY + streetYTotal;
-          if (collision(bull.x, bull.y, bullWidth, 40, runners[i].x, runners[i].y + 12, runnerWidth, 14)) {
+          if (collision(bull.x, bull.y, bull.img.width, 40, runners[i].x, runners[i].y + 12, runnerWidth, 14)) {
             if (soundOn) {
               var ole = createjs.Sound.play("ole");
               ole.setVolume(0.2);
