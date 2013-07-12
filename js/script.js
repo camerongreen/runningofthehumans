@@ -22,7 +22,7 @@ org.camerongreen = org.camerongreen || {};
   var FPS = 30, height = 600, width = 800, stage, queue, running = false, bestTime = 0, gameTicks = 0, soundOn = true, basePath;
   var streetContainer, streetLeft = 110, streetRight = 685, streetBg = [], streetVelocity = 0, streetVelocityMax = 25, streetVelocityIncrement = 1, streetSpeedY, streetSpeedIndicator;
   var bull;
-  var runnersContainer, runnersMax = 18, runners = [], score = {total:0, missed:0}, missedRunnersPenalty = 5;
+  var runnersContainer, runnersMax = 20, runners = [], score = {total:0, missed:0}, missedRunnersPenalty = 5;
   var scoreText, timeText, bestTimeText, mainText, helpContainer, shadowColour = "#000000";
 
   if (typeof Drupal !== "undefined") {
