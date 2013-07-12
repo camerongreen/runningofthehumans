@@ -448,8 +448,7 @@ org.camerongreen = org.camerongreen || {};
     help.alpha = 0;
 
     if (ns.vars.soundOn) {
-      var espana = createjs.Sound.play("espana");
-      espana.loop = -1;
+      createjs.Sound.play("espana", "none", 0, 0, -1);
     }
 
     var container = stage.getChildByName("runners");
