@@ -13,14 +13,16 @@ org.camerongreen = org.camerongreen || {};
 (function ($) {
   "use strict";
 
+  var ns = org.camerongreen;
+
   $(document).ready(function () {
     init();
   });
 
-  var FPS = 30, height = 600, width = 800, stage, queue, running = false, bestTime = 0, ticks = 0, soundOn = true, basePath;
-  var streetContainer, streetLeft = 110, streetRight = 685, streetBg, streetBg2, streetX = 0, streetY = 0, streetYTotal = 0, streetVelocity = 0, streetVelocityMax = 25, streetVelocityIncrement = 1;
-  var bull, bullSpeedY, bullSpeedIndicator;
-  var runnersContainer, runnersMax = 18, runners = [], runnerWidth = 40, runnerHeight = 40, score = 0, runnerMinVelocity = 5, runnerMaxVelocity = 20;
+  var FPS = 30, height = 600, width = 800, stage, queue, running = false, bestTime = 0, gameTicks = 0, soundOn = true, basePath;
+  var streetContainer, streetLeft = 110, streetRight = 685, streetBg = [], streetVelocity = 0, streetVelocityMax = 25, streetVelocityIncrement = 1, streetSpeedY, streetSpeedIndicator;
+  var bull;
+  var runnersContainer, runnersMax = 18, runners = [], score = {total:0, missed:0}, missedRunnersPenalty = 5;
   var scoreText, timeText, bestTimeText, mainText, helpContainer, shadowColour = "#000000";
 
   if (typeof Drupal !== "undefined") {
@@ -42,13 +44,13 @@ org.camerongreen = org.camerongreen || {};
 
   var TEXT = {
     name: "Running of the humans",
-    runnersBehind: "Runners behind",
     start: "Space/Click to start",
     score: "Tally",
     speed: "Speed",
     timer: "Time",
     bestTime: "Best time",
     bestTimeMessage: "New best time!!!",
+    missedRunners: "Missed runners penalty",
     seconds: "sec",
     victory: "Well done!",
     help: [
@@ -69,7 +71,7 @@ org.camerongreen = org.camerongreen || {};
 
     $("#cnv").click(function () {
       if (!running) {
-        if (score > 0) {
+        if (score.total > 0) {
           showMainScreen();
         } else {
           startGame();
@@ -106,6 +108,10 @@ org.camerongreen = org.camerongreen || {};
       {
         id: "espana",
         src: audioPath + "espana.mp3|" + audioPath + "espana.ogg"
+      },
+      {
+        id: "missed",
+        src: audioPath + "missed.mp3|" + audioPath + "missed.ogg"
       }
     ];
 
@@ -171,7 +177,7 @@ org.camerongreen = org.camerongreen || {};
     scoreHeading.shadow = textShadow;
     stage.addChild(scoreHeading);
 
-    scoreText = new createjs.Text(score + "/" + runnersMax, "20px Arial", "white");
+    scoreText = new createjs.Text(score.total + "/" + runnersMax, "20px Arial", "white");
     scoreText.x = 10;
     scoreText.y = scoreHeading.y + 25;
     scoreText.shadow = textShadow;
@@ -179,10 +185,10 @@ org.camerongreen = org.camerongreen || {};
 
     var speedHeading = new createjs.Text(TEXT.speed, "15px Arial", "white");
     speedHeading.x = 10;
-    speedHeading.y = scoreText.y + 40;
+    speedHeading.y = height - 220;
     speedHeading.shadow = textShadow;
     stage.addChild(speedHeading);
-    bullSpeedY = speedHeading.y + 25;
+    streetSpeedY = speedHeading.y + 25;
 
     helpContainer = new createjs.Container();
     stage.addChild(helpContainer);
@@ -202,7 +208,7 @@ org.camerongreen = org.camerongreen || {};
   }
 
   function showScoreText() {
-    scoreText.text = score + "/" + runnersMax;
+    scoreText.text = score.total + "/" + runnersMax;
   }
 
   function showTimeText(seconds) {
@@ -216,17 +222,17 @@ org.camerongreen = org.camerongreen || {};
    * and causing a memory leak
    */
   function updateBullSpeedIndicator() {
-    stage.removeChild(bullSpeedIndicator);
+    stage.removeChild(streetSpeedIndicator);
 
-    bullSpeedIndicator = new createjs.Shape();
+    streetSpeedIndicator = new createjs.Shape();
     var scaledSpeed = (98 / streetVelocityMax) * streetVelocity;
-    bullSpeedIndicator.graphics.beginLinearGradientFill(["#600","#E04006"], [0, 1], 0, bullSpeedY + 1, 0, bullSpeedY + 1 + 98).drawRect(21, (bullSpeedY + 99) - scaledSpeed, 24, scaledSpeed);
-    stage.addChild(bullSpeedIndicator);
+    streetSpeedIndicator.graphics.beginLinearGradientFill(["#600","#E04006"], [0, 1], 0, streetSpeedY + 1, 0, streetSpeedY + 1 + 98).drawRect(20, (streetSpeedY + 99) - scaledSpeed, 23, scaledSpeed);
+    stage.addChild(streetSpeedIndicator);
   }
 
   function showBullSpeedContainer() {
     var outer = new createjs.Shape();
-    outer.graphics.beginFill("#fff").drawRect(20, bullSpeedY, 26, 100);
+    outer.graphics.beginFill("#fff").drawRect(19, streetSpeedY, 25, 100);
     stage.addChild(outer);
   }
 
@@ -235,33 +241,41 @@ org.camerongreen = org.camerongreen || {};
   }
 
   function resetScore() {
-    score = 0;
+    score.total = 0;
+    score.missed = 0;
     showScoreText();
   }
 
   function resetTime() {
-    ticks = 0;
-    showTimeText(ticks);
+    gameTicks = 0;
+    showTimeText(gameTicks);
   }
 
   function updateScore() {
-    score++;
+    score.total++;
     showScoreText();
 
-    if (score === runnersMax) {
+    if (score.total === runnersMax) {
       victory();
     }
   }
 
   function updateTime() {
-    ticks++;
-    var seconds = ticks / FPS;
+    gameTicks++;
+    var seconds = gameTicks / FPS;
     showTimeText(seconds);
   }
 
   function victory() {
     var message = TEXT.victory;
-    var seconds = ticks / FPS;
+    var seconds = gameTicks / FPS;
+    if (score.missed) {
+      var penalty = score.missed * missedRunnersPenalty;
+      message += "\n" + TEXT.missedRunners;
+      message += ": " + score.missed + " x " + missedRunnersPenalty + " = " + penalty + TEXT.seconds;
+      seconds += penalty;
+    }
+    showTimeText(seconds);
     var newBestTime = (bestTime !== 0) && (seconds < bestTime);
     if ((bestTime === 0) || newBestTime) {
       bestTime = seconds;
@@ -287,24 +301,26 @@ org.camerongreen = org.camerongreen || {};
     streetContainer = new createjs.Container();
     stage.addChild(streetContainer);
 
-    streetBg = new createjs.BitmapAnimation(streetSprite);
-    streetBg.name = "street1";
-    streetBg.x = streetX;
-    streetBg.y = streetY;
-    streetBg.gotoAndPlay("be");
-    streetContainer.addChild(streetBg);
+    streetBg[0] = new createjs.BitmapAnimation(streetSprite);
+    streetBg[0].name = "street1";
+    streetBg[0].height = image.height;
+    streetBg[0].x = 0;
+    streetBg[0].y = 0;
+    streetBg[0].gotoAndPlay("be");
+    streetContainer.addChild(streetBg[0]);
 
-    streetBg2 = new createjs.BitmapAnimation(streetSprite);
-    streetBg2.name = "street2";
-    streetBg2.x = streetX;
-    streetBg2.y = streetY - height;
-    streetBg2.gotoAndPlay("be");
-    streetContainer.addChild(streetBg2);
+    streetBg[1] = new createjs.BitmapAnimation(streetSprite);
+    streetBg[1].name = "street2";
+    streetBg[1].height = image.height;
+    streetBg[1].x = 0;
+    streetBg[1].y = -(image.height);
+    streetBg[1].gotoAndPlay("be");
+    streetContainer.addChild(streetBg[1]);
   }
 
   function initBull() {
     var image = queue.getResult("bull");
-    bull = new org.camerongreen.Bull(image, streetLeft, streetRight, height, shadowColour);
+    bull = new ns.Bull(image, streetLeft, streetRight, height, shadowColour);
     stage.addChild(bull);
   }
 
@@ -358,7 +374,7 @@ org.camerongreen = org.camerongreen || {};
         if (!running) {
           // this is when the user has finished
           // a game, so just reset
-          if (score > 0) {
+          if (score.total > 0) {
             showMainScreen();
           } else {
             startGame();
@@ -394,20 +410,23 @@ org.camerongreen = org.camerongreen || {};
     helpContainer.alpha = 1;
     bull.reset();
     resetRunners();
-    streetBg.y = 0;
-    streetBg2.y = streetBg.y - height;
-    streetY = 0;
-    streetYTotal = 0;
-    streetVelocity = 0;
+    resetStreet();
     running = false;
     createjs.Sound.stop();
+  }
+
+  function resetStreet() {
+    streetBg[0].y = 0;
+    streetBg[1].y = -(streetBg[0].height);
+    streetVelocity = 0;
   }
 
   function initRunners() {
     runnersContainer = new createjs.Container();
     stage.addChild(runnersContainer);
     for (var i = 0; i < runnersMax; i++) {
-      var runner = createRunner(i);
+      var image = queue.getResult("runner");
+      var runner = new ns.Runner(i, image, streetLeft, streetRight, height - 220, shadowColour);
       runnersContainer.addChild(runner);
       runners.push(runner);
     }
@@ -415,54 +434,8 @@ org.camerongreen = org.camerongreen || {};
 
   function resetRunners() {
     for (var i = 0; i < runnersMax; i++) {
-      runners[i].x = runnerRandomX();
-      runners[i].positionY = runnerRandomY();
-      runners[i].y = runnerRandomY();
-      runners[i].state = "running";
-      // always have one guy who runs the fastest
-      if (i === 0) {
-        runners[i].velocity = runnerMaxVelocity;
-      } else {
-        runners[i].velocity = runnerRandomVelocity();
-      }
-
-      runners[i].gotoAndPlay("stand");
+      runners[i].reset(i);
     }
-  }
-
-  function runnerRandomX() {
-    return streetLeft + (Math.random() * ((streetRight - (runnerWidth / 2) - streetLeft)));
-  }
-
-  function runnerRandomVelocity() {
-    return runnerMinVelocity + (Math.random() * (runnerMaxVelocity - runnerMinVelocity));
-  }
-
-  function runnerRandomY() {
-    return (bull.y - 100) - (runnerHeight / 2) + (Math.random() * runnerHeight);
-  }
-
-  function createRunner(i) {
-    var image = queue.getResult("runner");
-    var runnerSprite = new createjs.SpriteSheet({
-      images: [image],
-      frames: {width: runnerWidth, count: 7, height: runnerHeight, regX: 0, regY: 0},
-      animations: {
-        stand: 0,
-        run: {
-          frames: [3, 2, 1, 2, 3, 4, 5, 4],
-          frequency: 3
-        },
-        caught: 6
-      }
-    });
-
-    var runner = new createjs.BitmapAnimation(runnerSprite);
-
-    runner.name = "runner" + i;
-    runner.shadow = new createjs.Shadow(shadowColour, 6, 9, 12);
-
-    return runner;
   }
 
   function tick() {
@@ -470,45 +443,40 @@ org.camerongreen = org.camerongreen || {};
       updateTime();
       updateBullSpeedIndicator();
 
-      streetY += streetVelocity;
-      streetYTotal += streetVelocity;
+      streetBg[0].y += streetVelocity;
 
-      if (streetY >= height) {
-        streetY = 0;
+      if (streetBg[0].y >= streetBg[0].height) {
+        streetBg[0].y = 0;
       }
 
-      streetBg.y = streetY;
-      streetBg2.y = streetBg.y - height;
-
-      var runnerBehind = false;
+      streetBg[1].y = streetBg[0].y - streetBg[0].height;
 
       for (var i = 0; i < runnersMax; i++) {
-        if (runners[i].state === "running") {
-          runners[i].positionY -= runners[i].velocity;
-          runners[i].y = runners[i].positionY + streetYTotal;
-          if (collision(bull.x, bull.y, bull.img.width, 40, runners[i].x, runners[i].y + 12, runnerWidth, 14)) {
+        if (runners[i].currentAnimation === "run") {
+          runners[i].move(streetVelocity);
+          if (collision(bull.x, bull.y, bull.img.width, 40, runners[i].x, runners[i].y + 12, runners[i].width, 14)) {
             if (soundOn) {
               var ole = createjs.Sound.play("ole");
               ole.setVolume(0.2);
             }
             updateScore();
-            runners[i].state = "caught";
             runners[i].gotoAndPlay("caught");
           }
 
           if (runners[i].y > height) {
-            runnerBehind = true;
+            updateScore();
+            var ole = createjs.Sound.play("missed");
+            score.missed++;
+            ole.setVolume(0.2);
+            runners[i].gotoAndPlay("caught");
           }
         } else {
           // if they are caught, have them scroll off the screen
-          runners[i].positionY += streetVelocity;
           runners[i].y += streetVelocity;
         }
       }
 
-      if (runnerBehind) {
-        setMainText(TEXT.runnersBehind);
-      } else if (running) {
+      if (running) {
         setMainText("");
       }
     }
