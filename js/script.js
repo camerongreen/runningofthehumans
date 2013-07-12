@@ -23,6 +23,7 @@ org.camerongreen = org.camerongreen || {};
     soundOn: true,
     basePath: typeof Drupal === "undefined" ? "." : "/" + Drupal.settings.running.basePath,
     shadowColour: "#000000",
+    fuzziness: 5,
     FPS: 30,
     street: {
       left: 110,
@@ -487,7 +488,7 @@ org.camerongreen = org.camerongreen || {};
     stage.addChild(container);
     var image = queue.getResult("runner");
     for (var i = 0; i < ns.vars.runners.max; i++) {
-      var runner = new ns.Runner(i, image, ns.vars.street.left, ns.vars.street.right, stage.canvas.height + ns.vars.runners.startLineOffset, ns.vars.shadowColour);
+      var runner = new ns.Runner(i, image, ns.vars.street.left + ns.vars.fuzziness, ns.vars.street.right - ns.vars.fuzziness, stage.canvas.height + ns.vars.runners.startLineOffset, ns.vars.shadowColour);
       container.addChild(runner);
     }
   };
@@ -556,11 +557,10 @@ org.camerongreen = org.camerongreen || {};
   };
 
   ns.collision = function (ax, ay, awidth, aheight, bx, by, bwidth, bheight) {
-    var fuzziness = 5;
     // horizontal collision
-    if (((bx + bwidth) >= (ax + fuzziness)) && ((ax + awidth) >= (bx - fuzziness))) {
+    if (((bx + bwidth) >= (ax + ns.vars.fuzziness)) && ((ax + awidth) >= (bx - ns.vars.fuzziness))) {
       // vertical collision
-      if (((by + bheight) >= (ay + fuzziness)) && ((ay + aheight) >= (by - fuzziness))) {
+      if (((by + bheight) >= (ay + ns.vars.fuzziness)) && ((ay + aheight) >= (by - ns.vars.fuzziness))) {
         return true;
       }
     }
