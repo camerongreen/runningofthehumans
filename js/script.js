@@ -36,7 +36,7 @@ org.camerongreen = org.camerongreen || {};
       velocityIncrement: 1
     },
     runners: {
-      max: 2,
+      max: 20,
       missedPenalty: 5,
       score: 0,
       missed: 0
@@ -506,30 +506,34 @@ org.camerongreen = org.camerongreen || {};
     }
   };
 
+  ns.updateStreet = function (stage) {
+    var street = stage.getChildByName("street");
+    var bg1 = street.getChildByName("street1");
+    var bg2 = street.getChildByName("street2");
+
+    bg1.y += ns.vars.street.velocity;
+
+    if (bg1.y >= bg1.height) {
+      bg1.y = 0;
+    }
+
+    bg2.y = bg1.y - bg1.height;
+  };
+
   ns.tick = function (stage) {
     if (ns.vars.running && !createjs.Ticker.getPaused()) {
       ns.updateTime(stage);
       ns.updateSpeedIndicator(stage);
-
-      var street = stage.getChildByName("street");
-      var bg1 = street.getChildByName("street1");
-      var bg2 = street.getChildByName("street2");
-
-      bg1.y += ns.vars.street.velocity;
-
-      if (bg1.y >= bg1.height) {
-        bg1.y = 0;
-      }
-
-      bg2.y = bg1.y - bg1.height;
+      ns.updateStreet(stage);
 
       var runners = stage.getChildByName("runners");
       var bull = stage.getChildByName("bull");
+
       for (var i = 0, l = runners.children.length; i < l; i++) {
         var runner = runners.getChildAt(i);
         if (runner.currentAnimation === "run") {
           runner.move(ns.vars.street.velocity);
-          if (ns.collision(bull.x, bull.y, bull.img.width, 40, runner.x, runner.y + 12, runner.width, 14)) {
+          if (ns.collision(bull.x, bull.y, bull.img.width, bull.img.height, runner.x, runner.y + 12, runner.width, 14)) {
             if (ns.vars.soundOn) {
               var ole = createjs.Sound.play("ole").setVolume(0.2);
             }
@@ -547,10 +551,6 @@ org.camerongreen = org.camerongreen || {};
           // if they are caught, have them scroll off the screen
           runner.y += ns.vars.street.velocity;
         }
-      }
-
-      if (ns.vars.running) {
-        ns.setMainText(stage, "");
       }
     }
 
