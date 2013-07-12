@@ -35,6 +35,7 @@ org.camerongreen = org.camerongreen || {};
       max: 20,
       missedPenalty: 5,
       score: 0,
+      startLineOffset: -220,
       missed: 0
     },
     KEYCODE: {
@@ -233,7 +234,7 @@ org.camerongreen = org.camerongreen || {};
     var textHeight = 60;
     for (var i = 0, l = ns.vars.TEXT.help.length; i < l; i++) {
       var help = new createjs.Text(ns.vars.TEXT.help[i], "20px Arial", "black");
-      help.x = stage.canvas.width / 2 - 80;
+      help.x = stage.canvas.width / 2 - 100;
       help.y = textHeight;
       helpContainer.addChild(help);
       textHeight += 25;
@@ -465,7 +466,7 @@ org.camerongreen = org.camerongreen || {};
     ns.resetTime(stage);
     ns.setMainText(stage, ns.vars.TEXT.start);
     var help = stage.getChildByName("help");
-    help.alpha = 0;
+    help.alpha = 1;
     var bull = stage.getChildByName("bull");
     bull.reset();
     ns.resetRunners(stage);
@@ -489,7 +490,7 @@ org.camerongreen = org.camerongreen || {};
     stage.addChild(container);
     var image = queue.getResult("runner");
     for (var i = 0; i < ns.vars.runners.max; i++) {
-      var runner = new ns.Runner(i, image, ns.vars.street.left, ns.vars.street.right, stage.canvas.height - 220, ns.vars.shadowColour);
+      var runner = new ns.Runner(i, image, ns.vars.street.left, ns.vars.street.right, stage.canvas.height + ns.vars.runners.startLineOffset, ns.vars.shadowColour);
       container.addChild(runner);
     }
   };
