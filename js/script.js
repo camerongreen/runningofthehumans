@@ -23,11 +23,7 @@ org.camerongreen = org.camerongreen || {};
     soundOn: true,
     basePath: typeof Drupal === "undefined" ? "." : "/" + Drupal.settings.running.basePath,
     shadowColour: "#000000",
-    screen: {
-      FPS: 30,
-      height: 600,
-      width: 800
-    },
+    FPS: 30,
     street: {
       left: 110,
       right: 685,
@@ -75,17 +71,17 @@ org.camerongreen = org.camerongreen || {};
   };
 
   $(document).ready(function () {
-    ns.init(ns.vars.screen.FPS);
+    ns.init(ns.vars.FPS, ns.vars.basePath);
   });
 
-  ns.init = function (fps) {
+  ns.init = function (fps, basePath) {
     var stage = new createjs.Stage("cnv");
 
-    ns.loadImages(ns.vars.basePath + "/images", function () {
+    ns.loadImages(basePath + "/images", function () {
       ns.go(stage, ns.vars.queue);
     });
 
-    ns.loadSounds(ns.vars.basePath + "/sounds");
+    ns.loadSounds(basePath + "/sounds");
 
     createjs.Ticker.setFPS(fps);
     createjs.Ticker.useRAF = true;
@@ -171,14 +167,14 @@ org.camerongreen = org.camerongreen || {};
 
     var main = new createjs.Text(ns.vars.TEXT.start, "30px Arial", "white");
     main.name = "textEl.main";
-    main.x = ns.vars.screen.width / 2;
-    main.y = ns.vars.screen.height / 2 - 25;
+    main.x = stage.canvas.width / 2;
+    main.y = stage.canvas.height / 2 - 25;
     main.shadow = textShadow;
     main.textAlign = "center";
     stage.addChild(main);
 
     var heading = new createjs.Text(ns.vars.TEXT.name, "40px Arial", "#111111");
-    heading.x = ns.vars.screen.width - 10;
+    heading.x = stage.canvas.width - 10;
     heading.y = 100;
     heading.rotation = 90;
     heading.shadow = textShadow;
@@ -199,7 +195,7 @@ org.camerongreen = org.camerongreen || {};
 
     var bestTimeHeading = new createjs.Text(ns.vars.TEXT.bestTime, "15px Arial", "white");
     bestTimeHeading.x = 10;
-    bestTimeHeading.y = ns.vars.screen.height - 80;
+    bestTimeHeading.y = stage.canvas.height - 80;
     bestTimeHeading.shadow = textShadow;
     stage.addChild(bestTimeHeading);
 
@@ -225,7 +221,7 @@ org.camerongreen = org.camerongreen || {};
 
     var speedHeading = new createjs.Text(ns.vars.TEXT.speed, "15px Arial", "white");
     speedHeading.x = 10;
-    speedHeading.y = ns.vars.screen.height - 220;
+    speedHeading.y = stage.canvas.height - 220;
     speedHeading.shadow = textShadow;
     stage.addChild(speedHeading);
     ns.vars.streetSpeedY = speedHeading.y + 25;
@@ -237,7 +233,7 @@ org.camerongreen = org.camerongreen || {};
     var textHeight = 60;
     for (var i = 0, l = ns.vars.TEXT.help.length; i < l; i++) {
       var help = new createjs.Text(ns.vars.TEXT.help[i], "20px Arial", "black");
-      help.x = ns.vars.screen.width / 2 - 80;
+      help.x = stage.canvas.width / 2 - 80;
       help.y = textHeight;
       helpContainer.addChild(help);
       textHeight += 25;
@@ -314,13 +310,13 @@ org.camerongreen = org.camerongreen || {};
 
   ns.updateTime = function (stage) {
     ns.vars.gameTicks++;
-    var seconds = ns.vars.gameTicks / ns.vars.screen.FPS;
+    var seconds = ns.vars.gameTicks / ns.vars.FPS;
     ns.showTimeText(stage, seconds);
   };
 
   ns.victory = function(stage) {
     var message = ns.vars.TEXT.victory;
-    var seconds = ns.vars.gameTicks / ns.vars.screen.FPS;
+    var seconds = ns.vars.gameTicks / ns.vars.FPS;
     if (ns.vars.runners.missed) {
       var penalty = ns.vars.runners.missed * ns.vars.runners.missedPenalty;
       message += "\n" + ns.vars.TEXT.missedRunners;
@@ -373,7 +369,7 @@ org.camerongreen = org.camerongreen || {};
 
   ns.initBull = function (stage, queue) {
     var image = queue.getResult("bull");
-    var bull = new ns.Bull(image, ns.vars.street.left, ns.vars.street.right, ns.vars.screen.height, ns.shadowColour);
+    var bull = new ns.Bull(image, ns.vars.street.left, ns.vars.street.right, stage.canvas.height, ns.shadowColour);
     stage.addChild(bull);
   };
 
@@ -493,7 +489,7 @@ org.camerongreen = org.camerongreen || {};
     stage.addChild(container);
     var image = queue.getResult("runner");
     for (var i = 0; i < ns.vars.runners.max; i++) {
-      var runner = new ns.Runner(i, image, ns.vars.street.left, ns.vars.street.right, ns.vars.screen.height - 220, ns.vars.shadowColour);
+      var runner = new ns.Runner(i, image, ns.vars.street.left, ns.vars.street.right, stage.canvas.height - 220, ns.vars.shadowColour);
       container.addChild(runner);
     }
   };
@@ -541,7 +537,7 @@ org.camerongreen = org.camerongreen || {};
             ns.updateScore(stage);
           }
 
-          if (runner.y > ns.vars.screen.height) {
+          if (runner.y > stage.canvas.height) {
             var ole = createjs.Sound.play("missed").setVolume(0.1);
             ns.vars.runners.missed++;
             runner.gotoAndPlay("caught");
