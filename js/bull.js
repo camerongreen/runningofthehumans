@@ -50,7 +50,7 @@ org.camerongreen = org.camerongreen || {};
   };
 
   ns.Bull.prototype.move = function (x) {
-    if ((x >= this.leftLimit) && ((x + this.img.width) =< this.rightLimit)) {
+    if ((x >= this.leftLimit) && ((x + this.img.width) <= this.rightLimit)) {
       this.x = x;
     }
   };
