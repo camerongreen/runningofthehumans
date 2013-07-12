@@ -163,7 +163,7 @@ org.camerongreen = org.camerongreen || {};
   }
 
   ns.showText = function (stage) {
-    var textShadow = new createjs.Shadow(ns.shadowColour, 2, 3, 6);
+    var textShadow = new createjs.Shadow(ns.vars.shadowColour, 2, 3, 6);
 
     var main = new createjs.Text(ns.vars.TEXT.start, "30px Arial", "white");
     main.name = "textEl.main";
@@ -283,7 +283,7 @@ org.camerongreen = org.camerongreen || {};
   ns.showSpeedContainer = function (stage) {
     var outer = new createjs.Shape();
     outer.graphics.beginFill("#fff").drawRect(19, ns.vars.streetSpeedY, 25, 100);
-    outer.shadow = new createjs.Shadow(ns.shadowColour, 2, 3, 6);
+    outer.shadow = new createjs.Shadow(ns.vars.shadowColour, 2, 3, 6);
 
     stage.addChild(outer);
   };
@@ -369,7 +369,7 @@ org.camerongreen = org.camerongreen || {};
 
   ns.initBull = function (stage, queue) {
     var image = queue.getResult("bull");
-    var bull = new ns.Bull(image, ns.vars.street.left, ns.vars.street.right, stage.canvas.height, ns.shadowColour);
+    var bull = new ns.Bull(image, ns.vars.street.left, ns.vars.street.right, stage.canvas.height, ns.vars.shadowColour);
     stage.addChild(bull);
   };
 
