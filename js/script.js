@@ -4,7 +4,7 @@ var org = org || {};
 org.camerongreen = org.camerongreen || {};
 
 /**
- *
+ * A game I wrote, because I hadn't written a game
  *
  * User: Cameron Green <i@camerongreen.org>
  * Date: 3/07/13
@@ -50,7 +50,7 @@ org.camerongreen = org.camerongreen || {};
     timer: "Time",
     bestTime: "Best time",
     bestTimeMessage: "New best time!!!",
-    missedRunners: "Missed runners penalty",
+    missedRunners: "Missed runners",
     seconds: "sec",
     victory: "Well done!",
     help: [
@@ -67,9 +67,8 @@ org.camerongreen = org.camerongreen || {};
   function init() {
     stage = new createjs.Stage("cnv");
     $(document).keydown(handleKeyPress);
-    var offset = $("#cnv").offset();
 
-    $("#cnv").click(function () {
+    stage.onMouseDown = function () {
       if (!running) {
         if (score.total > 0) {
           showMainScreen();
@@ -77,11 +76,15 @@ org.camerongreen = org.camerongreen || {};
           startGame();
         }
       }
-    }).mousemove(function (evt) {
-        if (running) {
-          bull.move(evt.pageX - offset.left);
-        }
-    }).mousewheel(function (evt, delta) {
+    };
+
+    stage.onMouseMove = function (evt) {
+      if (running) {
+        bull.move(evt.stageX);
+      }
+    };
+
+    $("#cnv").mousewheel(function (evt, delta) {
       if (delta > 0) {
         streetFaster();
       } else {
@@ -233,6 +236,8 @@ org.camerongreen = org.camerongreen || {};
   function showBullSpeedContainer() {
     var outer = new createjs.Shape();
     outer.graphics.beginFill("#fff").drawRect(19, streetSpeedY, 25, 100);
+    outer.shadow = new createjs.Shadow(shadowColour, 2, 3, 6);
+
     stage.addChild(outer);
   }
 
@@ -456,17 +461,15 @@ org.camerongreen = org.camerongreen || {};
           runners[i].move(streetVelocity);
           if (collision(bull.x, bull.y, bull.img.width, 40, runners[i].x, runners[i].y + 12, runners[i].width, 14)) {
             if (soundOn) {
-              var ole = createjs.Sound.play("ole");
-              ole.setVolume(0.2);
+              var ole = createjs.Sound.play("ole").setVolume(0.2);
             }
             runners[i].gotoAndPlay("caught");
             updateScore();
           }
 
           if (runners[i].y > height) {
-            var ole = createjs.Sound.play("missed");
+            var ole = createjs.Sound.play("missed").setVolume(0.1);
             score.missed++;
-            ole.setVolume(0.2);
             runners[i].gotoAndPlay("caught");
             updateScore();
           }
