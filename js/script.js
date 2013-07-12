@@ -86,7 +86,7 @@ org.camerongreen = org.camerongreen || {};
 
     createjs.Ticker.setFPS(fps);
     createjs.Ticker.useRAF = true;
-    createjs.Ticker.addEventListener("tick", function() {
+    createjs.Ticker.addEventListener("tick", function () {
       ns.tick(stage);
     });
   };
@@ -121,10 +121,9 @@ org.camerongreen = org.camerongreen || {};
       }
       return false;
     });
+  };
 
-  }
-
-  ns.loadImages = function(path, callBack) {
+  ns.loadImages = function (path, callBack) {
     ns.vars.queue = new createjs.LoadQueue(false);
     ns.vars.queue.addEventListener("complete", callBack);
     ns.vars.queue.loadManifest([
@@ -134,7 +133,7 @@ org.camerongreen = org.camerongreen || {};
     ]);
   };
 
-  ns.loadSounds = function(path) {
+  ns.loadSounds = function (path) {
     var manifest = [
       {
         id: "ole",
@@ -315,7 +314,7 @@ org.camerongreen = org.camerongreen || {};
     ns.showTimeText(stage, seconds);
   };
 
-  ns.victory = function(stage) {
+  ns.victory = function (stage) {
     var message = ns.vars.TEXT.victory;
     var seconds = ns.vars.gameTicks / ns.vars.FPS;
     if (ns.vars.runners.missed) {
@@ -414,8 +413,7 @@ org.camerongreen = org.camerongreen || {};
           ns.vars.soundOn = false;
         } else {
           ns.vars.soundOn = true;
-          var espana = createjs.Sound.play("espana");
-          espana.loop = -1;
+          createjs.Sound.play("espana", "none", 0, 0, -1);
         }
         break;
       case ns.vars.KEYCODE.pause:
@@ -532,17 +530,21 @@ org.camerongreen = org.camerongreen || {};
           runner.move(ns.vars.street.velocity);
           if (ns.collision(bull.x, bull.y, bull.img.width, 30, runner.x, runner.y + 12, runner.width, 14)) {
             if (ns.vars.soundOn) {
-              var ole = createjs.Sound.play("ole").setVolume(0.2);
+              createjs.Sound.play("ole").setVolume(0.2);
             }
             runner.gotoAndPlay("caught");
             ns.updateScore(stage);
-          }
-
-          if (runner.y > stage.canvas.height) {
-            var ole = createjs.Sound.play("missed").setVolume(0.1);
+          } else if (runner.y > stage.canvas.height) {
+            createjs.Sound.play("missed").setVolume(0.1);
             ns.vars.runners.missed++;
             runner.gotoAndPlay("caught");
             ns.updateScore(stage);
+          } else if (ns.collision(bull.x, bull.y, bull.img.width / 2, bull.img.height, runner.x, runner.y + 12, runner.width, 14)) {
+            // collision with left side of bull, move runner left
+            runner.left(bull.x - runner.width);
+          } else if (ns.collision(bull.x, bull.y, bull.img.width, bull.img.height, runner.x, runner.y + 12, runner.width, 14)) {
+            // collision with right side of bull, move runner right
+            runner.right(bull.x + bull.img.width);
           }
         } else {
           // if they are caught, have them scroll off the screen

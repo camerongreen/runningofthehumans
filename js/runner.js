@@ -55,6 +55,22 @@ org.camerongreen = org.camerongreen || {};
     this.shadow = new createjs.Shadow(this.shadowColour, 6, 9, 12);
   };
 
+  ns.Runner.prototype.left = function (to) {
+    if (this.x > this.leftLimit) {
+      this.x = to;
+    } else {
+      this.x = this.leftLimit;
+    }
+  };
+
+  ns.Runner.prototype.right = function (to) {
+    if ((this.x + this.width) < this.rightLimit) {
+      this.x = to;
+    } else {
+      this.x = this.rightLimit - this.width;
+    }
+  };
+
   ns.Runner.prototype.move = function (containerVelocity) {
     this.y = (this.y + containerVelocity) - this.velocity;
   };
