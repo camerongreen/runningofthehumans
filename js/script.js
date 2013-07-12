@@ -533,7 +533,7 @@ org.camerongreen = org.camerongreen || {};
         var runner = runners.getChildAt(i);
         if (runner.currentAnimation === "run") {
           runner.move(ns.vars.street.velocity);
-          if (ns.collision(bull.x, bull.y, bull.img.width, bull.img.height, runner.x, runner.y + 12, runner.width, 14)) {
+          if (ns.collision(bull.x, bull.y, bull.img.width, 30, runner.x, runner.y + 12, runner.width, 14)) {
             if (ns.vars.soundOn) {
               var ole = createjs.Sound.play("ole").setVolume(0.2);
             }
