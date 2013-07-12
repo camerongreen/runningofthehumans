@@ -272,7 +272,7 @@ org.camerongreen = org.camerongreen || {};
     if (score.missed) {
       var penalty = score.missed * missedRunnersPenalty;
       message += "\n" + TEXT.missedRunners;
-      message += ": " + score.missed + " x " + missedRunnersPenalty + " = " + penalty + TEXT.seconds;
+      message += ": " + score.missed + " x " + missedRunnersPenalty + " = " + penalty + " " + TEXT.seconds;
       seconds += penalty;
     }
     showTimeText(seconds);
@@ -459,16 +459,16 @@ org.camerongreen = org.camerongreen || {};
               var ole = createjs.Sound.play("ole");
               ole.setVolume(0.2);
             }
-            updateScore();
             runners[i].gotoAndPlay("caught");
+            updateScore();
           }
 
           if (runners[i].y > height) {
-            updateScore();
             var ole = createjs.Sound.play("missed");
             score.missed++;
             ole.setVolume(0.2);
             runners[i].gotoAndPlay("caught");
+            updateScore();
           }
         } else {
           // if they are caught, have them scroll off the screen
