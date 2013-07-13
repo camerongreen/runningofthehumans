@@ -239,6 +239,14 @@ org.camerongreen = org.camerongreen || {};
       helpContainer.addChild(help);
       textHeight += 25;
     }
+
+    var missed = new createjs.Text("5 " + ns.vars.TEXT.seconds, "20px Arial", "red");
+    missed.name = "textEl.missed";
+    missed.alpha = 0;
+    missed.y = stage.canvas.height - 25;
+    missed.shadow = textShadow;
+    stage.addChild(missed);
+
   };
 
   ns.setMainText = function (stage, stuff) {
@@ -535,6 +543,11 @@ org.camerongreen = org.camerongreen || {};
             runner.gotoAndPlay("caught");
             ns.updateScore(stage);
           } else if (runner.y > stage.canvas.height) {
+            var missed = stage.getChildByName("textEl.missed");
+            missed.x = runner.x;
+            createjs.Tween.get(missed).to({alpha:1}, 200).call(function () {
+              createjs.Tween.get(missed).to({alpha:0}, 1000);
+            });
             createjs.Sound.play("missed").setVolume(0.1);
             ns.vars.runners.missed++;
             runner.gotoAndPlay("caught");
