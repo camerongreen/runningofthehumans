@@ -239,14 +239,6 @@ org.camerongreen = org.camerongreen || {};
       helpContainer.addChild(help);
       textHeight += 25;
     }
-
-    var missed = new createjs.Text("5 " + ns.vars.TEXT.seconds, "20px Arial", "red");
-    missed.name = "textEl.missed";
-    missed.alpha = 0;
-    missed.y = stage.canvas.height - 25;
-    missed.shadow = textShadow;
-    stage.addChild(missed);
-
   };
 
   ns.setMainText = function (stage, stuff) {
@@ -523,6 +515,26 @@ org.camerongreen = org.camerongreen || {};
     bg2.y = bg1.y - bg1.height;
   };
 
+  ns.missedRunner = function(stage, runner) {
+    var missed = new createjs.Text("5 " + ns.vars.TEXT.seconds, "20px Arial", "red");
+    missed.name = "textEl.missed";
+    missed.alpha = 0;
+    missed.x = runner.x;
+    missed.y = stage.canvas.height - 25;
+    missed.shadow = new createjs.Shadow(ns.vars.shadowColour, 2, 3, 6);
+    stage.addChild(missed);
+
+    createjs.Tween.get(missed).to({alpha: 1}, 300).call(function () {
+      createjs.Tween.get(missed).to({alpha: 0}, 1000).call(function () {
+        stage.removeChild(missed);
+      });
+    });
+    createjs.Sound.play("missed").setVolume(0.1);
+    ns.vars.runners.missed++;
+    runner.gotoAndPlay("caught");
+    ns.updateScore(stage);
+  };
+
   ns.tick = function (stage) {
     if (ns.vars.running && !createjs.Ticker.getPaused()) {
       ns.updateTime(stage);
@@ -543,15 +555,7 @@ org.camerongreen = org.camerongreen || {};
             runner.gotoAndPlay("caught");
             ns.updateScore(stage);
           } else if (runner.y > stage.canvas.height) {
-            var missed = stage.getChildByName("textEl.missed");
-            missed.x = runner.x;
-            createjs.Tween.get(missed).to({alpha:1}, 200).call(function () {
-              createjs.Tween.get(missed).to({alpha:0}, 1000);
-            });
-            createjs.Sound.play("missed").setVolume(0.1);
-            ns.vars.runners.missed++;
-            runner.gotoAndPlay("caught");
-            ns.updateScore(stage);
+            ns.missedRunner(stage, runner);
           } else if (ns.collision(bull.x, bull.y, bull.img.width / 2, bull.img.height, runner.x, runner.y + 12, runner.width, 14)) {
             // collision with left side of bull, move runner left
             runner.left(bull.x - runner.width);
