@@ -425,7 +425,7 @@ org.camerongreen = org.camerongreen || {};
         if (!ns.vars.running) {
           // this is when the user has finished
           // a game, so just reset
-          if (score.total > 0) {
+          if (ns.vars.runners.score > 0) {
             ns.showMainScreen(stage);
           } else {
             ns.startGame(stage);
